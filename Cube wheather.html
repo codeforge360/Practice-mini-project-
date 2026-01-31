@@ -1,0 +1,145 @@
+<!doctype html>
+<html> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <title>Interactive Weather Cube</title> 
+  <style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial;
+}
+
+body{
+  background:black;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:white;
+  overflow:hidden;
+}
+
+.scene{
+  perspective:900px;
+}
+
+.cube{
+  width:160px;
+  height:160px;
+  position:relative;
+  transform-style:preserve-3d;
+  animation: spin 10s linear infinite;
+}
+
+.face{
+  position:absolute;
+  width:160px;
+  height:160px;
+  background:rgba(0,255,255,0.75);
+  border:2px solid cyan;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:10px;
+  color:#000;
+  font-size:14px;
+}
+
+.front  { transform: translateZ(80px); }
+.back   { transform: rotateY(180deg) translateZ(80px); }
+.right  { transform: rotateY(90deg) translateZ(80px); }
+.left   { transform: rotateY(-90deg) translateZ(80px); }
+.top    { transform: rotateX(90deg) translateZ(80px); }
+.bottom { transform: rotateX(-90deg) translateZ(80px); }
+
+@keyframes spin{
+  from{ transform: rotateX(0deg) rotateY(0deg); }
+  to{ transform: rotateX(360deg) rotateY(360deg); }
+}
+</style> 
+ </head> 
+ <body> 
+  <div class="scene"> 
+   <div class="cube" id="cube"> 
+    <div class="face front" id="delhi">
+      Loading… 
+    </div> 
+    <div class="face back" id="mumbai">
+      Loading… 
+    </div> 
+    <div class="face right" id="london">
+      Loading… 
+    </div> 
+    <div class="face left" id="newyork">
+      Loading… 
+    </div> 
+    <div class="face top" id="tokyo">
+      Loading… 
+    </div> 
+    <div class="face bottom" id="dubai">
+      Loading… 
+    </div> 
+   </div> 
+  </div> 
+  <script>
+const cube = document.getElementById("cube");
+
+let startX = 0;
+let startY = 0;
+let currentX = 0;
+let currentY = 0;
+let rotateX = 0;
+let rotateY = 0;
+let isDragging = false;
+
+cube.addEventListener("touchstart", e => {
+  isDragging = true;
+  cube.style.animation = "none";
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+});
+
+cube.addEventListener("touchmove", e => {
+  if(!isDragging) return;
+
+  currentX = e.touches[0].clientX;
+  currentY = e.touches[0].clientY;
+
+  rotateY += (currentX - startX) * 0.5;
+  rotateX -= (currentY - startY) * 0.5;
+
+  cube.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+  startX = currentX;
+  startY = currentY;
+});
+
+cube.addEventListener("touchend", () => {
+  isDragging = false;
+  cube.style.animation = "spin 10s linear infinite";
+});
+
+function loadWeather(lat, lon, city, id){
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById(id).innerHTML = `
+      <b>${city}</b><br>
+      🌡️ ${data.current_weather.temperature}°C<br>
+      💨 ${data.current_weather.windspeed} km/h
+    `;
+  });
+}
+
+loadWeather(28.61, 77.20, "Delhi", "delhi");
+loadWeather(19.07, 72.87, "Mumbai", "mumbai");
+loadWeather(51.50, -0.12, "London", "london");
+loadWeather(40.71, -74.00, "New York", "newyork");
+loadWeather(35.68, 139.69, "Tokyo", "tokyo");
+loadWeather(25.20, 55.27, "Dubai", "dubai");
+</script> 
+ </body>
+      </html>
